@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Temp + Humidty</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div id="humidity-container"></div>
+        <div id="temperature-container"></div>
+
+        <script src="./jquery.min.js"></script>
+        <script src="./d3.min.js"></script>
+        <script src="./gauge.js"></script>
+<script>
+(function($) {
+    // stores Gauge instances
+    var gauges = [];
+
+    // creates a Gauge instance
+    function createGauge(name, label, min, max) {
+        var config = {
+            size: 220,
+            label: label,
+            min: undefined != min ? min : 0,
+            max: undefined != max ? max : 100,
+            minorTicks: 5
+        }
+
+        gauges[name] = new Gauge(name + "-container", config);
+        gauges[name].render();
+    }
+
+    // GETs data from the Yun datastore
+    function getData(key) {
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: "http://192.168.240.1/data/get/" + key,
+            dataType: "jsonp",
+            jsonp: "jsonp"
+        }).done(function(data) {
+            defer.resolve(data);
+        });
+
+        return defer.promise();
+    }
+
+    // creates 'humidity' and 'temperature' Gauge instances
+    (function setup() {
+        createGauge("humidity", "Humid (%)");
+        createGauge("temperature", "Temp (C)");
+    })();
+
+    // fetches fresh humidity and temperature values every two seconds
+    (function loop() {
+        var getHumidity = getData("humidity");
+        $.when(getHumidity).done(function(data) {
+            gauges["humidity"].redraw(JSON.parse(data).value);
+
+            var getTemperature = getData("temperature");
+            $.when(getTemperature).done(function(data) {
+                gauges["temperature"].redraw(JSON.parse(data).value);
+
+                setTimeout(loop, 2000);
+            });
+        });
+    })();
+})(jQuery);
+</script>
+    </body>
+</html>
