@@ -2,7 +2,7 @@
 #include <YunClient.h>
 
 const int SERVER_PORT = 6666;
-const byte SERVER_ADDR[] = { 10, 10, 46, 59 };
+const byte SERVER_ADDR[] = { 10, 10, 41, 157 };
 
 YunClient toServer;
 long OpenWRTBaud = 250000; // Baud rate for communicating with Linux side
